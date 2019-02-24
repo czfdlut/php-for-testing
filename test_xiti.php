@@ -3,37 +3,6 @@
 require("http_request.php");
 require("helper.php");
 
-function get_uri($appkey, $appsecret, $query, $from, $to)
-{
-    $url = "http://openapi.youdao.com/api?";
-    $url = $url."from=".$from;
-    $url = $url."&to=".$to;
-    $url = $url."&appKey=".$appkey;
-    $url = $url."&q=".$query;
-    $salt = time();
-    $url = $url."&salt=".$salt;
-    $sign = strtoupper(md5($appkey.$query.$salt.$appsecret));
-    $url = $url."&sign=".$sign;
-    print_r("url=".$url."\n");
-    //return urlencode($url);
-    return $url;
-}
-
-
-function request_xiti($header, $uri, $post_data, $timeout_ms, $retry_cnt, &$ret_data)
-{
-    print_r("uri=".$uri);
-    print_r("post=".$post_data);
-    $ec = -1;
-    while (true) {
-        $ec = http_post_request_with_header($header, $uri, $timeout_ms, $post_data, $ret_data);
-        if ($ec == 200 || --$retry_cnt <= 0) {
-            break;
-        }
-    }
-    return $ec;
-}
-
 function get_token()
 {
     $appid = '35385640507';
