@@ -8,6 +8,7 @@ $appid = '35385640507';
 $appsecret = 'a14c4ab485a60833fe09064e27ae013e';
 $extra_code = 'abx23579436';
 
+
 /* 获得token */
 function get_access_token()
 {
@@ -56,6 +57,7 @@ function get_access_token()
     //print_r($ret_array);
     return $ret_array['data']['token'];
 }
+
 
 /* 申请订票 */
 function req_order_ticket($access_token)
@@ -185,10 +187,12 @@ function req_order_ticket($access_token)
     
 }
 
+
 /* 上传身份证照片 */
 function upload_IdImg()
 {
 }
+
 
 /* 订单查询 */
 function query_ticket_result($access_token)
@@ -262,6 +266,7 @@ function query_ticket_result($access_token)
     print_r("ret=".$ret_data."\n");
 }
 
+
 /* 订单退单(退单条件：已支付&未出票) */
 function cancel_order($access_token)
 {
@@ -316,6 +321,61 @@ function cancel_order($access_token)
     print_r("ret=".$ret_data."\n");
 }
 
+
+/* 订单撤单(撤单条件：未支付) */
+function cancel_order_v2($access_token)
+{
+    global $appid, $appsecret, $extra_code;
+    $sign = '';
+    $ver = '1.0';
+    $timestamp = time(); //'1550130142439';
+    $cmd = '3007';
+    $token = $access_token;
+    $openid = '';
+        
+    $merchantCode = $appid;
+    $merchantName = '美团';
+    $bizNo = '20190224';
+    $bizType = 'DPQX';
+    $mobile = '18688886666';
+    $orderId  = '20190224';
+    $requestID = '20191224';
+    
+    $content = array(
+        'sign' => $sign,
+        'ver' => $ver,
+        'command' => $cmd,
+        'token' => $token,
+        'timestamp' => $timestamp,
+        'openid' => $openid,
+        'param' => array(
+            'merchantCode' => $merchantCode,
+            'merchantName' => $merchantName,
+            'bizNo' => $bizNo,
+            'bizType' => $bizType,
+            'mobile' => $mobile,
+            'orderId' => $orderId,
+            'requestID' => $requestID
+        )
+    );
+    
+    $sign = create_sign($content, $extra_code);
+    $content['sign'] = $sign;
+
+    $post_data = json_encode($content);
+    $uri = "https://www.xt-kp.com/Ticket/orderCancel2.json";
+    $header = array(
+	    "Content-type: application/json;charset='utf-8'", 
+	    "Accept: application/json", 
+	    "Cache-Control: no-cache", 
+	    "Pragma: no-cache",
+    );
+    $ret_data = "";
+    $errcode = request_xiti($header, $uri, $post_data, 1000, 2, $ret_data);
+    print_r("ec=".$errcode."\n");
+    print_r("ret=".$ret_data."\n");
+}
+
 function test()
 {
     // 获取token
@@ -326,8 +386,9 @@ function test()
     // 查询订单
     //query_ticket_result($access_token);
     // 订单退单
-    cancel_order($access_token);
-    
+    //cancel_order($access_token);
+    // 订单撤单
+    cancel_order_v2($access_token);
 }
 
 test();
