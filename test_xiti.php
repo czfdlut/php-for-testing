@@ -185,13 +185,93 @@ function req_order_ticket($access_token)
     
 }
 
+/* 上传身份证照片 */
+function upload_IdImg()
+{
+}
+
+/* 订单查询 */
+function query_ticket_result($access_token)
+{
+    global $appid, $appsecret, $extra_code;
+    $sign = '';
+    $ver = '1.0';
+    $timestamp = time(); //'1550130142439';
+    $cmd = '3006';
+    $token = $access_token;
+    $openid = '';
+    
+    $merchantCode = $appid;
+    $merchantName = '美团';
+    $bizNo = '20190224';
+    $bizType = 'DP';
+    $bizName = '订票查询';
+    $bizBrief = '用户订票';
+    $bizTime = date('Y-m-d H:i:s');
+    $orderDate = date('Y-m-d');
+    $mobile = '18688886666';
+    $orderStatus = '9';
+    $startBizTime = date('Y-m-d');
+    $endBizTime = date('Y-m-d');
+    $pageIndex = 0;
+    $pageSize = 100;
+    $requestID = '20190224';
+    
+    $content = array(
+        'sign' => $sign,
+        'ver' => $ver,
+        'command' => $cmd,
+        'token' => $token,
+        'timestamp' => $timestamp,
+        'openid' => $openid,
+        'param' => array(
+            'appid' => $appid,
+            'secret' => $appsecret,
+            'merchantCode' => $merchantCode,
+            'merchantName' => $merchantName,
+            'bizNo' => $bizNo,
+            'bizType' => $bizType,
+            'bizName' => $bizName,
+            'bizBrief' => $bizBrief,
+            'bizTime' => $bizTime,
+            'orderDate' => $orderDate,
+            'mobile' => $mobile,
+            'orderStatus' => $orderStatus,
+            'startBizTime' => $startBizTime,
+            'endBizTime' => $endBizTime,
+            'pageIndex' => $pageIndex,
+            'pageSize' => $pageSize,
+            'requestID' => $requestID
+        )
+    );
+    
+    $sign = create_sign($content, $extra_code);
+    $content['sign'] = $sign;
+
+    $post_data = json_encode($content);
+    $uri = "https://www.xt-kp.com/Ticket/queryTicketResult.json";
+    $header = array(
+	    "Content-type: application/json;charset='utf-8'", 
+	    "Accept: application/json", 
+	    "Cache-Control: no-cache", 
+	    "Pragma: no-cache",
+    );
+    $ret_data = "";
+    $errcode = request_xiti($header, $uri, $post_data, 1000, 2, $ret_data);
+    print_r("ec=".$errcode."\n");
+    print_r("ret=".$ret_data."\n");
+}
+
 function test()
 {
     // 获取token
     $access_token = get_access_token();
     //print_r($access_token."\n");
     // 申请订票
-    req_order_ticket($access_token);
+    //req_order_ticket($access_token);
+    // 查询订单
+    query_ticket_result($access_token);
+    
 }
 
 test();
