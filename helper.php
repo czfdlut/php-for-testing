@@ -28,9 +28,9 @@ function create_sign($content, $extra_code)
         }
     }
     $message = $message.$extra_code;
-    print_r($message."\n");
+    //print_r($message."\n");
     $sign = md5($message);
-    print_r($sign);
+    //print_r($sign);
     
     return $sign;
 }
@@ -54,8 +54,8 @@ function get_uri($appkey, $appsecret, $query, $from, $to)
 
 function request_xiti($header, $uri, $post_data, $timeout_ms, $retry_cnt, &$ret_data)
 {
-    print_r("uri=".$uri);
-    print_r("post=".$post_data);
+    print_r("uri=".$uri."\n");
+    print_r("post=".$post_data."\n");
     $ec = -1;
     while (true) {
         $ec = http_post_request_with_header($header, $uri, $timeout_ms, $post_data, $ret_data);
