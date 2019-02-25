@@ -171,10 +171,10 @@ function req_order_ticket($access_token)
     $sign = create_sign($content, $extra_code);
     $content['sign'] = $sign;
 
-    $post_data = json_encode($content);
+    $post_data = make_request($content);
     $uri = "https://www.xt-kp.com/Ticket/reqOrderTicket.json";
     $header = array(
-	    "Content-type: application/json;charset='utf-8'", 
+	    "Content-type: application/x-www-form-urlencoded;charset='utf-8'", 
 	    "Accept: application/json", 
 	    "Cache-Control: no-cache", 
 	    "Pragma: no-cache",
@@ -183,7 +183,6 @@ function req_order_ticket($access_token)
     $errcode = request_xiti($header, $uri, $post_data, 1000, 2, $ret_data);
     print_r("ec=".$errcode."\n");
     print_r("ret=".$ret_data."\n");
-
     
 }
 
@@ -264,6 +263,7 @@ function query_ticket_result($access_token)
     $errcode = request_xiti($header, $uri, $post_data, 1000, 2, $ret_data);
     print_r("ec=".$errcode."\n");
     print_r("ret=".$ret_data."\n");
+
 }
 
 
@@ -307,10 +307,10 @@ function cancel_order($access_token)
     $sign = create_sign($content, $extra_code);
     $content['sign'] = $sign;
 
-    $post_data = json_encode($content);
+    $post_data = make_request($content);
     $uri = "https://www.xt-kp.com/Ticket/orderCancel.json";
     $header = array(
-	    "Content-type: application/json;charset='utf-8'", 
+	    "Content-type: application/x-www-form-urlencoded;charset='utf-8'", 
 	    "Accept: application/json", 
 	    "Cache-Control: no-cache", 
 	    "Pragma: no-cache",
@@ -319,6 +319,7 @@ function cancel_order($access_token)
     $errcode = request_xiti($header, $uri, $post_data, 1000, 2, $ret_data);
     print_r("ec=".$errcode."\n");
     print_r("ret=".$ret_data."\n");
+
 }
 
 
@@ -362,10 +363,10 @@ function cancel_order_v2($access_token)
     $sign = create_sign($content, $extra_code);
     $content['sign'] = $sign;
 
-    $post_data = json_encode($content);
+    $post_data = make_request($content);
     $uri = "https://www.xt-kp.com/Ticket/orderCancel2.json";
     $header = array(
-	    "Content-type: application/json;charset='utf-8'", 
+	    "Content-type: application/x-www-form-urlencoded;charset='utf-8'", 
 	    "Accept: application/json", 
 	    "Cache-Control: no-cache", 
 	    "Pragma: no-cache",
@@ -374,6 +375,7 @@ function cancel_order_v2($access_token)
     $errcode = request_xiti($header, $uri, $post_data, 1000, 2, $ret_data);
     print_r("ec=".$errcode."\n");
     print_r("ret=".$ret_data."\n");
+
 }
 
 function test()
@@ -384,9 +386,9 @@ function test()
     // 申请订票
     //req_order_ticket($access_token);
     // 查询订单
-    query_ticket_result($access_token."tewst");
+    //query_ticket_result($access_token);
     // 订单退单
-    //cancel_order($access_token);
+    cancel_order($access_token);
     // 订单撤单
     //cancel_order_v2($access_token);
 }
