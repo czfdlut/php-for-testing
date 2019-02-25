@@ -252,10 +252,10 @@ function query_ticket_result($access_token)
     $sign = create_sign($content, $extra_code);
     $content['sign'] = $sign;
 
-    $post_data = json_encode($content);
+    $post_data = make_request($content);
     $uri = "https://www.xt-kp.com/Ticket/queryTicketResult.json";
     $header = array(
-	    "Content-type: application/json;charset='utf-8'", 
+	    "Content-type: application/x-www-form-urlencoded;charset='utf-8'", 
 	    "Accept: application/json", 
 	    "Cache-Control: no-cache", 
 	    "Pragma: no-cache",
@@ -384,11 +384,11 @@ function test()
     // 申请订票
     //req_order_ticket($access_token);
     // 查询订单
-    //query_ticket_result($access_token);
+    query_ticket_result($access_token."tewst");
     // 订单退单
     //cancel_order($access_token);
     // 订单撤单
-    cancel_order_v2($access_token);
+    //cancel_order_v2($access_token);
 }
 
 test();

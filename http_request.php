@@ -1,9 +1,9 @@
 <?php
-//
-// purpose: API for HTTP(s)
-// author:  chenzhifeng
-// date:    2017-6-16
-//
+/****************************************/
+/* purpose: API for HTTP(s) */
+/* author:  chenzhifeng */
+/* date:    2017-6-16 */
+/****************************************/
 
 function http_get_request_with_header($url, $timeout, $header, &$data)
 {

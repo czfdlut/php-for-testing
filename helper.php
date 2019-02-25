@@ -51,6 +51,29 @@ function get_uri($appkey, $appsecret, $query, $from, $to)
     return $url;
 }
 
+function make_request($content)
+{
+    $message = "";
+    foreach($content as $key => $value) 
+    {
+        $pair = "";
+        if ($key != "param") 
+        {
+            $pair = $key."=".$value;
+        }
+        else
+        {
+            $tmp = json_encode($value);
+            $pair = $key."=".$tmp;
+        }
+        if ($message != "") {
+            $message = $message."&".$pair;
+        } else {
+            $message = $pair;
+        }
+    }
+    return $message;
+}
 
 function request_xiti($header, $uri, $post_data, $timeout_ms, $retry_cnt, &$ret_data)
 {
