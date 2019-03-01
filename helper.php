@@ -81,7 +81,7 @@ function make_form_request_v2($content, &$header, &$body)
 {
     $boundary = "-----------------------------7d83e2d7a141e";
     $multipart_header_fmt = "multipart/form-data; boundary=%s";
-    $multipart_fmt = "--%s\r\n Content-Disposition: form-data; name=\"%s\"\r\n\r\n %s\r\n";
+    $multipart_fmt = "--%s\r\nContent-Disposition: form-data; name=\"%s\"\r\n\r\n%s\r\n";
     $multipart_end_fmt = "--%s--\r\n";
     $header = sprintf($multipart_header_fmt, $boundary);
     $body = "";

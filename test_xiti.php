@@ -210,12 +210,12 @@ function query_ticket_result($access_token)
     $bizType = 'DP';
     $bizName = '订票查询';
     $bizBrief = '用户订票';
-    $bizTime = '20190301 17:45:10'; //date('Y-m-d H:i:s');
-    $orderDate = '20190301';//date('Y-m-d');
+    $bizTime = '2019-03-01 17:45:10'; //date('Y-m-d H:i:s');
+    $orderDate = '2019-03-01';//date('Y-m-d');
     $mobile = '18688886666';
     $orderStatus = '9';
-    $startBizTime = '20190301'; //date('Y-m-d');
-    $endBizTime = '20190301'; //date('Y-m-d');
+    $startBizTime = '2019-03-01 18:10:10'; //date('Y-m-d');
+    $endBizTime = '2019-03-01 20:10:10'; //date('Y-m-d');
     $pageIndex = 0;
     $pageSize = 100;
     $requestID = '20190224';
@@ -254,7 +254,7 @@ function query_ticket_result($access_token)
     $uri = "https://www.xt-kp.com/Ticket/queryTicketResult.json";
 
     /* 方法1 */
-    $type = 1;
+    $type = 3;
     if ($type == 1) 
     {
         $post_data = make_request($content);
@@ -276,15 +276,14 @@ function query_ticket_result($access_token)
     }
     else if ($type == 3)
     {
-        $content_type = "";
+        $tmp = "";
         $post_data = "";
-        make_form_request_v2($content, $content_type, $post_data);
-        print_r($content_type."\n");
+        make_form_request_v2($content, $tmp, $post_data);
+        print_r($tmp."\n");
         print_r($post_data."\n");
-
-        $tmp = sprintf("Content-type: %s; charset='utf-8'", $content_type); 
+        $content_type = sprintf("Content-type: %s; charset='utf-8'", $tmp); 
         $header = array(
-	        $tmp,
+	        $content_type,
 	        "Accept: application/json", 
 	        "Cache-Control: no-cache", 
 	        "Pragma: no-cache",
