@@ -199,7 +199,7 @@ function query_ticket_result($access_token)
     global $appid, $appsecret, $extra_code;
     $sign = '';
     $ver = '1.0';
-    $timestamp = time(); //'1550130142439';
+    $timestamp = '1551432535'; //time(); 
     $cmd = '3006';
     $token = $access_token;
     $openid = '';
@@ -210,12 +210,12 @@ function query_ticket_result($access_token)
     $bizType = 'DP';
     $bizName = '订票查询';
     $bizBrief = '用户订票';
-    $bizTime = date('Y-m-d H:i:s');
-    $orderDate = date('Y-m-d');
+    $bizTime = '20190301 17:45:10'; //date('Y-m-d H:i:s');
+    $orderDate = '20190301';//date('Y-m-d');
     $mobile = '18688886666';
     $orderStatus = '9';
-    $startBizTime = date('Y-m-d');
-    $endBizTime = date('Y-m-d');
+    $startBizTime = '20190301'; //date('Y-m-d');
+    $endBizTime = '20190301'; //date('Y-m-d');
     $pageIndex = 0;
     $pageSize = 100;
     $requestID = '20190224';
@@ -254,24 +254,43 @@ function query_ticket_result($access_token)
     $uri = "https://www.xt-kp.com/Ticket/queryTicketResult.json";
 
     /* 方法1 */
-    /*$post_data = make_request($content);
-    $header = array(
-	    "Content-type: application/x-www-form-urlencoded;charset='utf-8'", 
-	    "Accept: application/json", 
-	    "Cache-Control: no-cache", 
-	    "Pragma: no-cache",
-    );*/
+    $type = 1;
+    if ($type == 1) 
+    {
+        $post_data = make_request($content);
+        $header = array(
+	        "Content-type: application/x-www-form-urlencoded;charset='utf-8'", 
+	        "Accept: application/json", 
+	        "Cache-Control: no-cache", 
+	        "Pragma: no-cache",
+        );
+    }
+    else if ($type == 2) {
+        $post_data = make_form_request($content);
+        $header = array(
+	        "Content-type: multipart/form-data; charset='utf-8'", 
+	        "Accept: application/json", 
+	        "Cache-Control: no-cache", 
+	        "Pragma: no-cache",
+        );
+    }
+    else if ($type == 3)
+    {
+        $content_type = "";
+        $post_data = "";
+        make_form_request_v2($content, $content_type, $post_data);
+        print_r($content_type."\n");
+        print_r($post_data."\n");
 
-    /* 方法2 */
-    $post_data = make_form_request($content);
-    $header = array(
-	    "Content-type: multipart/form-data; charset='utf-8'", 
-	    "Accept: application/json", 
-	    "Cache-Control: no-cache", 
-	    "Pragma: no-cache",
-    );
-    print_r($post_data);
-    //return;
+        $tmp = sprintf("Content-type: %s; charset='utf-8'", $content_type); 
+        $header = array(
+	        $tmp,
+	        "Accept: application/json", 
+	        "Cache-Control: no-cache", 
+	        "Pragma: no-cache",
+        );
+    }
+    //print_r($post_data);
     $ret_data = "";
     $errcode = request_xiti($header, $uri, $post_data, 1000, 2, $ret_data);
     print_r("ec=".$errcode."\n");
@@ -394,7 +413,7 @@ function cancel_order_v2($access_token)
 function test()
 {
     // 获取token
-    $access_token = get_access_token();
+    $access_token = 'f2c99b55731732bd18a203aa999a2f06'; //get_access_token();
     print_r($access_token."\n");
     // 申请订票
     //req_order_ticket($access_token);

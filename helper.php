@@ -64,7 +64,6 @@ function make_form_request($content)
     $message = array();
     foreach($content as $key => $value) 
     {
-        $pair = "";
         if ($key != "param") 
         {
             $message[$key] = $value;
@@ -76,6 +75,32 @@ function make_form_request($content)
         }
     }
     return $message;
+}
+
+function make_form_request_v2($content, &$header, &$body)
+{
+    $boundary = "-----------------------------7d83e2d7a141e";
+    $multipart_header_fmt = "multipart/form-data; boundary=%s";
+    $multipart_fmt = "--%s\r\n Content-Disposition: form-data; name=\"%s\"\r\n\r\n %s\r\n";
+    $multipart_end_fmt = "--%s--\r\n";
+    $header = sprintf($multipart_header_fmt, $boundary);
+    $body = "";
+    foreach($content as $key => $value) 
+    {
+        if ($key != "param") 
+        {
+            $tmp = sprintf($multipart_fmt, $boundary, $key, $value);
+            $body = $body.$tmp;
+        }
+        else
+        {
+            $new_value = json_encode($value);
+            $tmp = sprintf($multipart_fmt, $boundary, $key, $new_value);
+            $body = $body.$tmp;
+        }
+    }
+    $tmp = sprintf($multipart_end_fmt, $boundary);
+    $body = $body.$tmp;
 }
 
 function request_xiti($header, $uri, $post_data, $timeout_ms, $retry_cnt, &$ret_data)
