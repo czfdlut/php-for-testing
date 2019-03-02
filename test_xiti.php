@@ -199,7 +199,7 @@ function req_order_ticket($access_token)
 	        "Cache-Control: no-cache", 
 	        "Pragma: no-cache",
             "ticket-uid: for_test",
-            "Expect: 100-continue"
+            //"Expect: 100-continue"
         );
     }
 
