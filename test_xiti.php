@@ -72,7 +72,7 @@ function req_order_ticket($access_token)
     
     $merchantCode = $appid;
     $merchantName = "美团订票系统";
-    $bizNo = "20190224";
+    $bizNo = "20190302";
     $bizType = 'DP';
     $bizName = '订票';
     $bizBrief = '用户订票';
@@ -93,9 +93,9 @@ function req_order_ticket($access_token)
     $noSeatFlag = 'Y';
     $ticketNum = '1';
     $idType = '1';
-    $idNo = '1:440101200602060011';
+    $idNo = '1:440101200702060011';
     $IdName = '张三';
-    $ticketPrices = '368.5';
+    $ticketPrices = '68.5';
     $couponValue = "50.0";
     $bonusFlag = '2.0';
     $serviceFee = '5.0';
@@ -105,7 +105,7 @@ function req_order_ticket($access_token)
     $mobile = '18688886666';
     $userId = '1111';
     $address = '陕西渭南';
-    $requestID = '20190224';
+    $requestID = '20190302';
     $ticketObtainMode = '1';
     $officeId = '2';
     $ticketTakpePoint = '1';
@@ -198,7 +198,8 @@ function req_order_ticket($access_token)
 	        "Accept: application/json", 
 	        "Cache-Control: no-cache", 
 	        "Pragma: no-cache",
-            "ticket-uid: for_test"
+            "ticket-uid: for_test",
+            "Expect: 100-continue"
         );
     }
 
