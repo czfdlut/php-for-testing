@@ -170,15 +170,40 @@ function req_order_ticket($access_token)
     
     $sign = create_sign($content, $extra_code);
     $content['sign'] = $sign;
+    
+    $type = 2;
+    $post_data = "";
+    $header = array();
+    if ($type == 1) 
+    {
+        $post_data = make_request($content);
+        $header = array(
+            "Content-type: application/x-www-form-urlencoded;charset='utf-8'", 
+            "Accept: application/json", 
+            "Cache-Control: no-cache", 
+            "Pragma: no-cache",
+            "ticket-uid: for_test"
+        );
 
-    $post_data = make_request($content);
-    $uri = "https://www.xt-kp.com/Ticket/reqOrderTicket.json";
-    $header = array(
-	    "Content-type: application/x-www-form-urlencoded;charset='utf-8'", 
-	    "Accept: application/json", 
-	    "Cache-Control: no-cache", 
-	    "Pragma: no-cache",
-    );
+    }
+    else if ($type == 2)
+    {
+        $tmp = "";
+        make_form_request_v2($content, $tmp, $post_data);
+        print_r($tmp."\n");
+        print_r($post_data."\n");
+        $content_type = sprintf("Content-type: %s; charset='utf-8'", $tmp); 
+        $header = array(
+	        $content_type,
+	        "Accept: application/json", 
+	        "Cache-Control: no-cache", 
+	        "Pragma: no-cache",
+            "ticket-uid: for_test"
+        );
+    }
+
+    //$uri = "https://www.xt-kp.com/Ticket/reqOrderTicket.json";
+    $uri = "http://127.0.0.1:8080/Ticket/reqOrderTicket.json";
     $ret_data = "";
     $errcode = request_xiti($header, $uri, $post_data, 1000, 2, $ret_data);
     print_r("ec=".$errcode."\n");
@@ -251,10 +276,11 @@ function query_ticket_result($access_token)
     $sign = create_sign($content, $extra_code);
     $content['sign'] = $sign;
 
-    $uri = "https://www.xt-kp.com/Ticket/queryTicketResult.json";
+    //$uri = "https://www.xt-kp.com/Ticket/queryTicketResult.json";
+    $uri = "http://127.0.0.1:8080/Ticket/queryTicketResult.json";
 
     /* 方法1 */
-    $type = 3;
+    $type = 1;
     if ($type == 1) 
     {
         $post_data = make_request($content);
@@ -415,9 +441,9 @@ function test()
     $access_token = 'f2c99b55731732bd18a203aa999a2f06'; //get_access_token();
     print_r($access_token."\n");
     // 申请订票
-    //req_order_ticket($access_token);
+    req_order_ticket($access_token);
     // 查询订单
-    query_ticket_result($access_token);
+    //query_ticket_result($access_token);
     // 订单退单
     //cancel_order($access_token);
     // 订单撤单
