@@ -105,8 +105,11 @@ function make_form_request_v2($content, &$header, &$body)
 
 function request_xiti($header, $uri, $post_data, $timeout_ms, $retry_cnt, &$ret_data)
 {
+    print_r("header=");
+    print_r($header);
+    print_r("\n");
     print_r("uri=".$uri."\n");
-    print_r("post=");
+    print_r("body=");
     print_r($post_data);
     print_r("\n");
     $ec = -1;
