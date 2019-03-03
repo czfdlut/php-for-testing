@@ -1,0 +1,115 @@
+# -*- coding: utf-8 -*
+from util import request_query
+import tornado.web
+from datetime import datetime
+
+class ReqOrderTicket(tornado.web.RequestHandler):     
+    def initialize(self):
+        self.url = self.config.get("REQ-API", "url")        
+        self.timeout = self.config.getint("REQ-API", "timeout")        
+        self.redis_client.connect()
+            
+    @property
+    def logger(self):
+        return self.application.logger
+
+    @property
+    def mysql_db(self):
+        return self.application.mysql_db
+
+    @property
+    def redis_cient(self):
+        return self.application.redis_client
+
+    @property
+    def config(self):
+        return self.application.config
+    
+    @tornado.gen.coroutine
+    def transaction(self, uid, cost_balance):
+        lock = self.redis_client.acquire(uid, 3)       
+
+        sql = "select balance from account_balance where id='%s'" % uid 
+        qs = self.mysql_db.execute_query_sql(sql)
+
+        balance = float(qs[0][0]) - float(cost_balance)
+
+        sql = "update set balance=%f from account_balance where id='%s'" % (balance, uid)
+        self.mysql_db.execute_sql(sql)
+
+        self.redis_client.release()       
+
+    @tornado.gen.coroutine
+    def post(self):
+        start_time = datetime.now()
+        self.logger.info("post data:%s" % self.request.body)
+        
+        self.set_header("Content-Type", "application/json") 
+        
+        uid = self.request.headers.get("ticket-uid") 
+        sql = "select id from order_ticket where uid='%s' limit 1" % uid
+        qs = self.mysql_db.execute_query_sql(sql)
+        if qs is None or len(qs) == 0:
+            self.write({"errcode": -1, "errmsg": "not found match uid", "data": {}})
+            self.finish()
+            return 
+
+        sql = "select uid from account_balance where uid='%s' limit 1" % uid
+        qs = self.mysql_db.execute_query_sql(sql)
+        if qs is None or len(qs) == 0:
+            self.write({"errcode": -1, "errmsg": "account not found match uid", "data": {}})
+            self.finish()
+            return 
+        
+        try:
+            post_data = json.loads(self.request.body)
+            post_param = post_data["param"]
+        except:
+            self.write({"errcode": -1, "errmsg": "reqeust is not json format", "data": {}})
+            self.finish()
+            return 
+
+        resp, status = request_query(self.url, data=post_data, timeout=timeout)
+        if status is not None:
+            self.write({"errcode": -1, "errmsg": "sever timeout", "data": {}})
+            self.finish()
+            return
+
+        try:
+            resp_data = json.loads(resp)
+            if int(resp_data["errcode"]) != 0:
+                self.logger.error("request order failed:%s" % resp)
+                self.write(resp)
+                self.finish()
+                return
+            resp_param =  resp_data["data"] 
+        except:
+            self.write({"errcode": -1, "errmsg": "response is not json format", "errdata": {}})
+            self.finish()
+            return
+        
+        hdata = {"uid":             uid,
+                 "merchantCode":    post_param["merchantCode"],
+                 "bizNo":           post_param["bizNo"],
+                 "bizName":         post_param["bizName"],
+                 "bizTime":         post_param["bizTime"],
+                 "orderNo":         post_param["orderNo"],
+                 "ticketPrices":    post_param["ticketPrices"],
+                 "payType":         post_param["payType"],
+                 "requestID":       post_param["requestID"],
+                 "updateTime":      datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                 "orderTicketFlow": resp_param["orderTicketFlow"]
+                }
+        
+        if post_data["param"].has_key("merchantName"):
+            hdata["merchantName"] = post_param["merchantName"]
+
+        self.mysql_db.insert("order_ticket", hdata) 
+        
+        self.write(resp)
+        self.finish()
+
+        yield tornado.gen.Task(self.transaction, uid, post_param["ticketPrices"])
+
+        self.logger.info("cost time: %s" %((datetime.now() - start_time)))
+

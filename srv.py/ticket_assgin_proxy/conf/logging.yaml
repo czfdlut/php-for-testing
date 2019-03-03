@@ -1,0 +1,38 @@
+# logging.yaml
+
+version: 1
+disable_existing_loggers: True
+formatters:
+  simple:
+    format: '%(asctime)s - %(name)s - %(funcName)s - %(lineno)d - %(levelname)s - %(message)s'
+
+loggers:
+  console:
+    handlers: [console]
+    propagate: false
+    backupCount: 1
+   
+  XXXXX:
+    handlers: [app_XXXXX]
+    propagate: false
+    backupCount: 10
+    
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: INFO
+    formatter: simple
+    stream: ext://sys.stdout
+     
+  app_XXXXX:
+    class: logging.handlers.TimedRotatingFileHandler
+    level: INFO
+    formatter: simple
+    when: H
+    filename: ./log/XXXXX.log
+    backupCount: 10
+
+root:
+  level: INFO
+  handlers: [console, app_XXXXX]
+  propagate: false

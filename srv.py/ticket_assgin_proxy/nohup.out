@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "proxy_server.py", line 2, in <module>
+    from mysql_client import MySqlClient
+  File "/home/work/ticket_assgin_proxy/mysql_client.py", line 2, in <module>
+    from util import logger_handler
+  File "/home/work/ticket_assgin_proxy/util.py", line 10, in <module>
+    import urllib.request
+ImportError: No module named request
