@@ -395,7 +395,8 @@ function cancel_order($access_token)
  
     $ret_data = "";
     //$uri = "https://www.xt-kp.com/Ticket/orderCancel.json";
-    $uri = "http://127.0.0.1:8080/Ticket/orderCancel.json";
+    #$uri = "http://127.0.0.1:8080/Ticket/orderCancel.json";
+    $uri = "http://test.maidaopiao.com/Ticket/orderCancel.json";
     $errcode = request_xiti($header, $uri, $post_data, 1000, 2, $ret_data);
     print_r("ec=".$errcode."\n");
     print_r("ret=".$ret_data."\n");
@@ -463,7 +464,7 @@ function test()
     // 获取token
     $access_token = 'f2c99b55731732bd18a203aa999a2f06'; //get_access_token();
     print_r($access_token."\n");
-    $type = 1;
+    $type = 3;
     if ($type == 1) {
         // 申请订票
         req_order_ticket($access_token);

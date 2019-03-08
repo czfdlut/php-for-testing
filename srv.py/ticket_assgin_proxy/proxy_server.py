@@ -54,7 +54,7 @@ class EventApplication(tornado.web.Application):
             log_path = self.config.get("LOG", "path")
         except Exception as e:
             raise Exception(e)
-        
+
         self.logger = logger_handler(log_name, logpath=log_path, debug=tornado.options.options.debug)
 
         self.mysql_db = MySqlClient(config_path, "MYSQL", self.logger)

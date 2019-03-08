@@ -3,7 +3,6 @@ from util import request_query
 import tornado.web
 from datetime import datetime
 import json
-import requests
 from tornado.concurrent import Future
 from tornado.httpclient import AsyncHTTPClient
 import tornado.httpclient
@@ -29,13 +28,9 @@ class ReqOrderTicket(tornado.web.RequestHandler):
     def config(self):
         return self.application.config
 
-    def update_balance(self, uid, balance):
-        sql = "update account_balance set balance=%f where uid='%s'" % (balance, uid)
-        self.mysql_db.execute_sql(sql)
-
     def finish_err_msg(self, msg):
-        self.set_header("Content-Type", "application/json")
-        self.write({"errcode": -1, "errmsg": msg, "data": {}})
+        self.set_header("Content-Type", "application/json;charset=UTF-8")
+        self.write({"errcode": -1, "errmsg": "bbb", "data": {}})
         self.finish()
 
     def content_type_from_headers(self):
@@ -44,79 +39,60 @@ class ReqOrderTicket(tornado.web.RequestHandler):
                 return {k: v}
         return {}
 
-    def process_request_balance(self, uid, request_body):
-        sql = "select balance from account_balance where uid='%s' limit 1" % uid
-        qs = self.mysql_db.execute_query_sql(sql)
-        if qs is None or len(qs) == 0:
-            self.logger.error("not found balance")
-            return None
-
-        balance = qs[0][0]
-
-        try:
-            param = json.loads(self.get_argument("param"))
-            money = param["ticketPrices"]
-        except Exception as err:
-            self.logger.error("Error: %s" % err)
-            return None
-
-        f_balance = float(balance) -  float(money)
-
-        if f_balance < 1.0:
-            self.logger.error("balance is not enough: cost:%s balance:%s" % (money, balance))
-            return None
-
-        self.logger.info("final balance: %f" % f_balance)
-        return f_balance
-
-    def request_parm_check(self):
+    def param_request_parm(self):
         try:
             param = json.loads(self.get_argument("param"))
         except Exception as err:
-            return "Error: %s" % err
-
-        if "merchantCode" not in param:
-            return "Error: not found merchantCode"
-
-        if "bizNo" not in param:
-            return "Error: not found bizNo"
-
-        if "bizName" not in param:
-            return "Error: not found bizName"
-
-        if "bizTime" not in param:
-            return "Error: not found bizTime"
-
-        if "orderDate" not in param:
-            return "Error: not found orderDate"
+            return "Error: %s" % err, None
 
         if "ticketPrices" not in param:
-            return "Error: not found ticketPrices"
+            return "Error: not found ticketPrices", None
+
+        if float(param["ticketPrices"]) < 1.0 or float(param["ticketPrices"]) > 3000:
+            return "Error: money out of money", None
+
+        if "merchantCode" not in param:
+            return "Error: not found merchantCode", None
+
+        if "bizNo" not in param:
+            return "Error: not found bizNo", None
+
+        if "bizName" not in param:
+            return "Error: not found bizName", None
+
+        if "bizTime" not in param:
+            return "Error: not found bizTime", None
+
+        if "orderDate" not in param:
+            return "Error: not found orderDate", None
+
+        if "ticketPrices" not in param:
+            return "Error: not found ticketPrices", None
 
         if "payType" not in param:
-            return "Error: not found payType"
+            return "Error: not found payType", None
 
         if "requestID" not in param:
-            return "Error: not found requestID"
+            return "Error: not found requestID", None
 
-        return None
+        return None, param
 
-    def join_db_data(self, uid, server_resp_data):
+    def join_db_data(self, uid, param, server_resp_data):
         hdata = {"uid": uid}
         try:
-            param = json.loads(self.get_argument("param"))
             resp_data = json.loads(server_resp_data)
+            hdata["errmsg"]  = resp_data["errmsg"]
             try:
                 if int(resp_data["errcode"]) != 0:
                     hdata["status"] = 0
                 else:
                     hdata["status"] = 1
             except:
-                hdata["status"] = 0 
+                hdata["status"] = 0
         except Exception as err:
             self.logger.error("Error: %s" % err)
             return None
-        
+
         if "merchantCode" in param:
             hdata["merchantCode"] = param["merchantCode"]
 
@@ -166,8 +142,17 @@ class ReqOrderTicket(tornado.web.RequestHandler):
             if k.lower() == "ticket-uid":
                 return v
         return None
-    
-    @tornado.gen.coroutine    
+
+    def add_headers(self, headers, k, v):
+        is_exist_kv = False
+        for k ,v in headers.items():
+            if k.lower() == k.lower():
+                is_exist_kv = true
+
+        if is_exist_kv:
+            headers[k] = v
+
+    @tornado.gen.coroutine
     def reqeust_proxy_server(self, headers, body):
         return request_query(self.url, headers=headers, data=body, timeout=self.timeout)
 
@@ -177,70 +162,90 @@ class ReqOrderTicket(tornado.web.RequestHandler):
         start_time = datetime.now()
 
         uid = self.get_uid_from_headers()
-        self.logger.info("ticket uid: %s url: %s" % (uid, self.url))
+        self.logger.info("ticket uid: %s url: %s " % (uid, self.url))
 
-        sql = "select order_ticket.id from order_ticket, account_balance where order_ticket.uid='%s' \
-                        and account_balance.balance>1.0 limit 1" % uid
-
+        sql = "select balance from account_balance where uid='%s' and balance>1.0 limit 1" % uid
         qs = self.mysql_db.execute_query_sql(sql)
         if qs is None or len(qs) == 0:
-            self.finish_err_msg("uid error")
+            self.finish_err_msg(r"非法uid")
             return
 
-        err = self.request_parm_check()
+        self.logger.info("account balance: %s" % qs[0][0])
+
+        err, param = self.param_request_parm()
         if err is not None:
             self.logger.error(err)
-            self.finish_err_msg("param exception")
+            self.finish_err_msg(r"参数错误")
             return
 
-        lock = self.redis_client.acquire(uid + "_lock", 3)
+        self.logger.info("reqeust_body: %s " % self.request.body)
 
-        f_balance = self.process_request_balance(uid, self.request.body)
-        if f_balance is None:
-            self.redis_client.release(lock)
-            self.finish_err_msg("balance error")
+        balance_uid = "ticket-uid_%s" % uid
+        trans_balance = self.redis_client.get(balance_uid)
+        if trans_balance is None:
+            self.logger.error("not found ticket_balance: %s" % balance_uid)
+            self.finish_err_msg(r"金额错误")
             return
-         
+
+        self.logger.info("trans_balance: %s" % float(trans_balance))
+
+        cur_balance = self.redis_client.hget("ticket-uid", uid)
+        if len(cur_balance) == 0:
+            self.finish_err_msg(r"金额错误")
+            return
+
+        self.logger.info("lock_balance: %s" % cur_balance)
+
+        ticket_prices = float(param["ticketPrices"])
+        if float(trans_balance) < ticket_prices or float(cur_balance) < ticket_prices:
+            self.finish_err_msg(r"金额超限")
+            return
+
+        self.logger.info("ticket_prices: %f" % ticket_prices)
+        trans_after_balance = self.redis_client.incrbyfloat(balance_uid, -1.0 * ticket_prices)
+        if trans_after_balance is None:
+	        self.finish_err_msg(r"交易非法")
+	        return
+	    
+        if float(trans_after_balance) < 0.01:
+            self.redis_client.incrbyfloat(balance_uid, ticket_prices)
+            self.finish_err_msg(r"交易非法")
+            return
+
         headers = self.content_type_from_headers()
         resp_headers, resp_data, err = yield tornado.gen.Task(self.reqeust_proxy_server, headers, self.request.body)
 
         self.logger.info("resp_headers: %s" % str(resp_headers))
         self.logger.info("resp_data: %s" % str(resp_data))
 
-        if err is not None:         
+        if err is not None:
             self.logger.error("request error:%s" % err)
-            self.redis_client.release(lock)
+            self.redis_client.incrbyfloat(balance_uid, ticket_prices)
             self.write(err)
             self.finish()
             return
-         
-        resp_headers = {"Content-Type":"application/json"}
+
+        self.add_headers(resp_headers, "Content-Type", "application/json;charset=UTF-8")
         self.set_response_header(resp_headers)
         self.set_response_status(200)
-        
-        hdata = self.join_db_data(uid, resp_data)
-        print("hdata: ", hdata)
 
-        self.logger.info("hdata: %s" % str(hdata))         
+        hdata = self.join_db_data(uid, param, resp_data)
+        self.logger.info("hdata: %s" % json.dumps(hdata))
+
+        if hdata is None or hdata["status"] == 0:
+            elf.redis_client.incrbyfloat(balance_uid, ticket_prices)
+
         if hdata is None:
             self.logger.error("db data error")
-            self.redis_client.release(lock)
             self.write(resp_data)
             self.finish()
             return
-         
+
+        lock = self.redis_client.acquire("ticket-uid_%s_lock" % uid, 1)
         self.mysql_db.insert("order_ticket", hdata)
-
-        self.update_balance(uid, f_balance)
-
-        self.redis_client.hset("ticket-uid", uid, f_balance)
-
         self.redis_client.release(lock)
-        
+
         self.write(resp_data)
         self.finish()
 
         self.logger.info("cost time: %s" %((datetime.now() - start_time)))
-
- 
-

@@ -197,6 +197,20 @@ class RedisClient(Singleton):
             self.logger.error(err)
             return None
 
+    def get(self, key):
+        try:
+            return self.r_con.get(key)
+        except Exception as err:
+            self.logger.error(err)
+            return None
+
+    def incrbyfloat(self, key, value):
+        try:
+            return self.r_con.incrbyfloat(key, value)
+        except Exception as err:
+            self.logger.error(err)
+            return None
+
     def llen(self, key):
         try:
             llen = self.r_con.llen(key)
@@ -225,6 +239,7 @@ class RedisClient(Singleton):
         except Exception as err:
             self.logger.error(err)
             return 0
+
 
 if __name__ == '__main__':
     from util import logger_handler

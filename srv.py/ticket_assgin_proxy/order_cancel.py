@@ -96,8 +96,10 @@ class OrderCancel(tornado.web.RequestHandler):
         try:
             param = json.loads(self.get_argument("param"))
             resp_data = json.loads(server_resp_data)
+            print(resp_data)
             try:
-                if int(resp_data["errcode"]) != 0:
+                if (resp_data["errcode"] != "0"):
+                    hdata["errmsg"] = resp_data["errmsg"]
                     success = 0
                 else:
                     success = 1
@@ -135,12 +137,15 @@ class OrderCancel(tornado.web.RequestHandler):
         else:
             hdata["cancelStatus"] = 1
 
-        hdata["update_Time"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        hdata["stat_flag"] = -1
+
+        if hdata["cancelStatus"] != 0:
+            ticket_prices = 0
+
         hdata["ticket_prices"] = ticket_prices
-
+        hdata["update_Time"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
         return hdata
-
+    
     def set_response_header(self, headers):
         for k, v in headers.items():
             self.set_header(k, v)
