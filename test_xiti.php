@@ -204,7 +204,7 @@ function req_order_ticket($access_token)
     }
 
     //$uri = "https://www.xt-kp.com/Ticket/reqOrderTicket.json";
-    $uri = "http://127.0.0.1:8080/Ticket/reqOrderTicket.json";
+    $uri = "http://127.0.0.1:80/Ticket/reqOrderTicket.json";
     $ret_data = "";
     $errcode = request_xiti($header, $uri, $post_data, 1000, 2, $ret_data);
     print_r("ec=".$errcode."\n");
@@ -463,7 +463,7 @@ function test()
     // 获取token
     $access_token = 'f2c99b55731732bd18a203aa999a2f06'; //get_access_token();
     print_r($access_token."\n");
-    $type = 3;
+    $type = 1;
     if ($type == 1) {
         // 申请订票
         req_order_ticket($access_token);
